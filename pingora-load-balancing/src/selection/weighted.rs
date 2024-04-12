@@ -37,6 +37,7 @@ impl<H: SelectionAlgorithm> BackendSelection for Weighted<H> {
             backends.len() <= u16::MAX as usize,
             "support up to 2^16 backends"
         );
+        let length: usize = backends.len();
         let backends = Vec::from_iter(backends.iter().cloned()).into_boxed_slice();
         let mut weighted = Vec::with_capacity(backends.len());
         for (index, b) in backends.iter().enumerate() {
@@ -47,7 +48,7 @@ impl<H: SelectionAlgorithm> BackendSelection for Weighted<H> {
         Weighted {
             backends,
             weighted: weighted.into_boxed_slice(),
-            algorithm: H::new(),
+            algorithm: H::new(length),
         }
     }
 
@@ -105,6 +106,7 @@ mod test {
     use super::super::algorithms::*;
     use super::*;
     use std::collections::HashMap;
+    use std::hash::Hash;
 
     #[test]
     fn test_fnv() {
@@ -204,5 +206,25 @@ mod test {
         }
         let b2_count = *count.get(&b2).unwrap();
         assert!((70..=90).contains(&b2_count));
+    }
+
+    #[test]
+    fn test_hash() {
+        let b1 = Backend::new("1.1.1.1:80").unwrap();
+        let mut b2 = Backend::new("1.0.0.1:80").unwrap();
+        b2.weight = 8; // 8x than the rest
+        let b3 = Backend::new("1.0.0.255:80").unwrap();
+        let backends = BTreeSet::from_iter([b1.clone(), b2.clone(), b3.clone()]);
+        let hash: Arc<Weighted<HashLB>> = Arc::new(Weighted::build(&backends));
+
+        let mut count = HashMap::new();
+        count.insert(b1.clone(), 0);
+        count.insert(b2.clone(), 0);
+        count.insert(b3.clone(), 0);
+
+        for _ in 0..100 {
+            let mut iter = hash.iter(b"test");
+            assert_eq!(iter.next(), Some(&b2));
+        }
     }
 }

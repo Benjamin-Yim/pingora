@@ -52,7 +52,7 @@ pub trait BackendIter {
 /// All [std::hash::Hasher] + [Default] can be used directly as a selection algorithm.
 pub trait SelectionAlgorithm {
     /// Create a new implementation
-    fn new() -> Self;
+    fn new(backend:usize) -> Self;
     /// Return the next index of backend. The caller should perform modulo to get
     /// the valid index of the backend.
     fn next(&self, key: &[u8]) -> u64;
