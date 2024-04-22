@@ -29,6 +29,7 @@ rand = "0"
 tokio = { workspace = true }
 futures = "0"
 log = { workspace = true }
+dns-lookup = "2.0.4"
 
 [dev-dependencies]
 

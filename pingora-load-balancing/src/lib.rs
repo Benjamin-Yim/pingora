@@ -28,15 +28,16 @@ use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use std::time::Duration;
 
-mod background;
 pub mod discovery;
+mod background;
 pub mod health_check;
 pub mod selection;
 
-use discovery::ServiceDiscovery;
+
 use health_check::Health;
 use selection::UniqueIterator;
 use selection::{BackendIter, BackendSelection};
+use crate::discovery::ServiceDiscovery;
 
 pub mod prelude {
     pub use crate::health_check::TcpHealthCheck;
@@ -281,17 +282,17 @@ pub struct LoadBalancer<S> {
 }
 
 impl<'a, S: BackendSelection> LoadBalancer<S>
-where
-    S: BackendSelection + 'static,
-    S::Iter: BackendIter,
+    where
+        S: BackendSelection + 'static,
+        S::Iter: BackendIter,
 {
     /// Build a [LoadBalancer] with static backends created from the iter.
     ///
     /// Note: [ToSocketAddrs] will invoke blocking network IO for DNS lookup if
     /// the input cannot be directly parsed as [SocketAddr].
-    pub fn try_from_iter<A, T: IntoIterator<Item = A>>(iter: T) -> IoResult<Self>
-    where
-        A: ToSocketAddrs,
+    pub fn try_from_iter<A, T: IntoIterator<Item=A>>(iter: T) -> IoResult<Self>
+        where
+            A: ToSocketAddrs,
     {
         let discovery = discovery::Static::try_from_iter(iter)?;
         let backends = Backends::new(discovery);
@@ -349,8 +350,8 @@ where
     /// because it failed before. The `accept` function is called multiple times iterating over backends
     /// until it returns `true`.
     pub fn select_with<F>(&self, key: &[u8], max_iterations: usize, accept: F) -> Option<Backend>
-    where
-        F: Fn(&Backend, bool) -> bool,
+        where
+            F: Fn(&Backend, bool) -> bool,
     {
         let selection = self.selector.load();
         let mut iter = UniqueIterator::new(selection.iter(key), max_iterations);
@@ -380,6 +381,8 @@ where
 mod test {
     use super::*;
     use async_trait::async_trait;
+    use dns_lookup::lookup_host;
+    use crate::discovery::ServiceDiscovery;
 
     #[tokio::test]
     async fn test_static_backends() {
@@ -483,5 +486,16 @@ mod test {
         assert!(backends.ready(&good1));
         assert!(backends.ready(&good2));
         assert!(!backends.ready(&bad));
+    }
+
+    #[tokio::test]
+    async fn test_dns_lookup() {
+        let domain = "www.baidu.com";
+        // let health = HashMap::new();
+        let mut tree: BTreeSet<Backend> = BTreeSet::new();
+        let ips: Vec<std::net::IpAddr> = lookup_host(domain).unwrap();
+        for item in ips.to_vec() {
+            println!("{}", item.to_string())
+        }
     }
 }
