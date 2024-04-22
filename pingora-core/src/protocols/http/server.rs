@@ -18,7 +18,7 @@ use super::error_resp;
 use super::v1::server::HttpSession as SessionV1;
 use super::v2::server::HttpSession as SessionV2;
 use super::HttpTask;
-use crate::protocols::{SocketAddr, Stream};
+use crate::protocols::{Digest, SocketAddr, Stream};
 use bytes::Bytes;
 use http::header::AsHeaderName;
 use http::HeaderValue;
@@ -323,11 +323,27 @@ impl Session {
         }
     }
 
-    /// How many response body bytes already sent
+    /// Return how many response body bytes (application, not wire) already sent downstream
     pub fn body_bytes_sent(&self) -> usize {
         match self {
             Self::H1(s) => s.body_bytes_sent(),
             Self::H2(s) => s.body_bytes_sent(),
+        }
+    }
+
+    /// Return how many request body bytes (application, not wire) already read from downstream
+    pub fn body_bytes_read(&self) -> usize {
+        match self {
+            Self::H1(s) => s.body_bytes_read(),
+            Self::H2(s) => s.body_bytes_read(),
+        }
+    }
+
+    /// Return the digest for the session.
+    pub fn digest(&self) -> Option<&Digest> {
+        match self {
+            Self::H1(s) => Some(s.digest()),
+            Self::H2(s) => s.digest(),
         }
     }
 
