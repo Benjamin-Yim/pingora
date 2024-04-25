@@ -381,7 +381,6 @@ impl<'a, S: BackendSelection> LoadBalancer<S>
 mod test {
     use super::*;
     use async_trait::async_trait;
-    use dns_lookup::lookup_host;
     use crate::discovery::ServiceDiscovery;
 
     #[tokio::test]
@@ -488,14 +487,68 @@ mod test {
         assert!(!backends.ready(&bad));
     }
 
-    #[tokio::test]
-    async fn test_dns_lookup() {
-        let domain = "www.baidu.com";
-        // let health = HashMap::new();
-        let mut tree: BTreeSet<Backend> = BTreeSet::new();
-        let ips: Vec<std::net::IpAddr> = lookup_host(domain).unwrap();
-        for item in ips.to_vec() {
-            println!("{}", item.to_string())
+    // #[tokio::test]
+    // async fn test_dns_lookup() {
+    //     let domain = "www.bing.com";
+    //     // let health = HashMap::new();
+    //     let tree: BTreeSet<Backend> = BTreeSet::new();
+    //     let ips: Vec<std::net::IpAddr> = lookup_host(domain).unwrap();
+    //     for item in ips.to_vec() {
+    //         println!("{}", item.to_string())
+    //     }
+    // }
+
+
+    #[test]
+    fn test_dns_hickory_client() {
+        use std::str::FromStr;
+        use hickory_client::client::{Client, SyncClient};
+        use hickory_client::udp::UdpClientConnection;
+        use hickory_client::op::DnsResponse;
+        use hickory_client::rr::{DNSClass, Name, RData, Record, RecordType};
+
+        let address = "114.114.114.114:53".parse().unwrap();
+        let conn = UdpClientConnection::new(address).unwrap();
+        let client = SyncClient::new(conn);
+
+        // Specify the name, note the final '.' which specifies it's an FQDN
+        let name = Name::from_str("www.bing.com").unwrap();
+
+        // NOTE: see 'Setup a connection' example above
+        // Send the query and get a message response, see RecordType for all supported options
+        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
+
+        // Messages are the packets sent between client and server in DNS, DnsResonse's can be
+        //  dereferenced to a Message. There are many fields to a Message, It's beyond the scope
+        //  of these examples to explain them. See hickory_dns::op::message::Message for more details.
+        //  generally we will be interested in the Message::answers
+        let answers: &[Record] = response.answers();
+
+        // Records are generic objects which can contain any data.
+        //  In order to access it we need to first check what type of record it is
+        //  In this case we are interested in A, IPv4 address
+        for x in answers {
+            // let ip: &RData = x.data().unwrap();
+            if let Some(RData::A(ref remoteAddr)) = x.data() {
+                println!("{}", remoteAddr.to_string().as_str())
+            }
+            // match x.data() {
+            //     Some(RData::A(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     Some(RData::AAAA(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     Some(RData::CNAME(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     None => {
+            //         println!("none")
+            //     }
+            //     _ => {
+            //         println!("_")
+            //     }
+            // };
         }
     }
 }
