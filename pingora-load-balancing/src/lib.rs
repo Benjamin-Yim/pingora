@@ -381,6 +381,7 @@ impl<'a, S: BackendSelection> LoadBalancer<S>
 mod test {
     use super::*;
     use async_trait::async_trait;
+    use futures::executor::block_on;
     use crate::discovery::{dns, ServiceDiscovery};
 
     #[tokio::test]
@@ -463,19 +464,15 @@ mod test {
         assert!(!backends.ready(&bad));
     }
 
-    #[tokio::test]
-    async fn test_discovery_dns() {
-        
-        let discovery = dns::DNS::new("www.bing.com");
+    #[test]
+    fn test_discovery_dns() {
+        let discovery = dns::DNS::new("www.example.com").unwrap();
 
         let backends = Backends::new(Box::new(discovery));
-        let update = backends.update().await;
-        if update.is_ok() {
-            println!("{}", update.unwrap());
-        }
-
+        let update = block_on(backends.update());
+        assert!(update.is_ok());
         let backend = backends.get_backend();
-        println!("{}", backend.is_empty());
+        assert!(!backend.is_empty());
     }
 
     #[tokio::test]
@@ -504,7 +501,7 @@ mod test {
 
     // #[tokio::test]
     // async fn test_dns_lookup() {
-    //     let domain = "www.bing.com";
+    //     let domain = "www.example.com";
     //     // let health = HashMap::new();
     //     let tree: BTreeSet<Backend> = BTreeSet::new();
     //     let ips: Vec<std::net::IpAddr> = lookup_host(domain).unwrap();
@@ -522,12 +519,12 @@ mod test {
         use hickory_client::op::DnsResponse;
         use hickory_client::rr::{DNSClass, Name, RData, Record, RecordType};
 
-        let address = "114.114.114.114:53".parse().unwrap();
+        let address = "8.8.8.8:53".parse().unwrap();
         let conn = UdpClientConnection::new(address).unwrap();
         let client = SyncClient::new(conn);
 
         // Specify the name, note the final '.' which specifies it's an FQDN
-        let name = Name::from_str("www.bing.com").unwrap();
+        let name = Name::from_str("www.example.com").unwrap();
 
         // NOTE: see 'Setup a connection' example above
         // Send the query and get a message response, see RecordType for all supported options
