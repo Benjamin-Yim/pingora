@@ -14,7 +14,7 @@
 
 //! Service discovery interface and implementations
 
-mod dns;
+pub mod dns;
 
 use arc_swap::ArcSwap;
 use async_trait::async_trait;
@@ -55,9 +55,9 @@ impl Static {
     }
 
     /// Create a new boxed [Static] from a given iterator of items that implements [ToSocketAddrs].
-    pub fn try_from_iter<A, T: IntoIterator<Item = A>>(iter: T) -> IoResult<Box<Self>>
-    where
-        A: ToSocketAddrs,
+    pub fn try_from_iter<A, T: IntoIterator<Item=A>>(iter: T) -> IoResult<Box<Self>>
+        where
+            A: ToSocketAddrs,
     {
         let mut upstreams = BTreeSet::new();
         for addrs in iter.into_iter() {

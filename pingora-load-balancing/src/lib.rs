@@ -381,7 +381,7 @@ impl<'a, S: BackendSelection> LoadBalancer<S>
 mod test {
     use super::*;
     use async_trait::async_trait;
-    use crate::discovery::ServiceDiscovery;
+    use crate::discovery::{dns, ServiceDiscovery};
 
     #[tokio::test]
     async fn test_static_backends() {
@@ -464,6 +464,21 @@ mod test {
     }
 
     #[tokio::test]
+    async fn test_discovery_dns() {
+        
+        let discovery = dns::DNS::new("www.bing.com");
+
+        let backends = Backends::new(Box::new(discovery));
+        let update = backends.update().await;
+        if update.is_ok() {
+            println!("{}", update.unwrap());
+        }
+
+        let backend = backends.get_backend();
+        println!("{}", backend.is_empty());
+    }
+
+    #[tokio::test]
     async fn test_parallel_health_check() {
         let discovery = discovery::Static::default();
         let good1 = Backend::new("1.1.1.1:80").unwrap();
@@ -529,8 +544,8 @@ mod test {
         //  In this case we are interested in A, IPv4 address
         for x in answers {
             // let ip: &RData = x.data().unwrap();
-            if let Some(RData::A(ref remoteAddr)) = x.data() {
-                println!("{}", remoteAddr.to_string().as_str())
+            if let Some(RData::A(ref remote_addr)) = x.data() {
+                println!("{}", remote_addr.to_string().as_str())
             }
             // match x.data() {
             //     Some(RData::A(ref x)) => {
