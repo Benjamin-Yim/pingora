@@ -106,7 +106,7 @@ impl DNS {
 }
 
 ///
-/// 实现 DNS 服务发现
+/// implemented DNS discovery
 #[async_trait]
 impl ServiceDiscovery for DNS {
     async fn discover(&self) -> pingora_error::Result<(BTreeSet<Backend>, HashMap<u64, bool>)> {
