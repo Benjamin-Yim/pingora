@@ -28,16 +28,15 @@ use std::net::ToSocketAddrs;
 use std::sync::Arc;
 use std::time::Duration;
 
-pub mod discovery;
 mod background;
+pub mod discovery;
 pub mod health_check;
 pub mod selection;
 
-
+use crate::discovery::ServiceDiscovery;
 use health_check::Health;
 use selection::UniqueIterator;
 use selection::{BackendIter, BackendSelection};
-use crate::discovery::ServiceDiscovery;
 
 pub mod prelude {
     pub use crate::health_check::TcpHealthCheck;
@@ -282,17 +281,17 @@ pub struct LoadBalancer<S> {
 }
 
 impl<'a, S: BackendSelection> LoadBalancer<S>
-    where
-        S: BackendSelection + 'static,
-        S::Iter: BackendIter,
+where
+    S: BackendSelection + 'static,
+    S::Iter: BackendIter,
 {
     /// Build a [LoadBalancer] with static backends created from the iter.
     ///
     /// Note: [ToSocketAddrs] will invoke blocking network IO for DNS lookup if
     /// the input cannot be directly parsed as [SocketAddr].
-    pub fn try_from_iter<A, T: IntoIterator<Item=A>>(iter: T) -> IoResult<Self>
-        where
-            A: ToSocketAddrs,
+    pub fn try_from_iter<A, T: IntoIterator<Item = A>>(iter: T) -> IoResult<Self>
+    where
+        A: ToSocketAddrs,
     {
         let discovery = discovery::Static::try_from_iter(iter)?;
         let backends = Backends::new(discovery);
@@ -350,8 +349,8 @@ impl<'a, S: BackendSelection> LoadBalancer<S>
     /// because it failed before. The `accept` function is called multiple times iterating over backends
     /// until it returns `true`.
     pub fn select_with<F>(&self, key: &[u8], max_iterations: usize, accept: F) -> Option<Backend>
-        where
-            F: Fn(&Backend, bool) -> bool,
+    where
+        F: Fn(&Backend, bool) -> bool,
     {
         let selection = self.selector.load();
         let mut iter = UniqueIterator::new(selection.iter(key), max_iterations);
@@ -380,9 +379,9 @@ impl<'a, S: BackendSelection> LoadBalancer<S>
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::discovery::{dns, ServiceDiscovery};
     use async_trait::async_trait;
     use futures::executor::block_on;
-    use crate::discovery::{dns, ServiceDiscovery};
 
     #[tokio::test]
     async fn test_static_backends() {
@@ -510,14 +509,13 @@ mod test {
     //     }
     // }
 
-
     #[test]
     fn test_dns_hickory_client() {
-        use std::str::FromStr;
         use hickory_client::client::{Client, SyncClient};
-        use hickory_client::udp::UdpClientConnection;
         use hickory_client::op::DnsResponse;
         use hickory_client::rr::{DNSClass, Name, RData, Record, RecordType};
+        use hickory_client::udp::UdpClientConnection;
+        use std::str::FromStr;
 
         let address = "8.8.8.8:53".parse().unwrap();
         let conn = UdpClientConnection::new(address).unwrap();

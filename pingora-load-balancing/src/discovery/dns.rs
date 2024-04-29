@@ -1,19 +1,17 @@
-use std::collections::{BTreeSet, HashMap};
-use std::env;
-use std::fmt::format;
-use std::hash::Hash;
-use std::net::{IpAddr, Ipv4Addr, SocketAddr};
-use std::str::FromStr;
-use async_trait::async_trait;
-use crate::Backend;
 use crate::discovery::ServiceDiscovery;
+use crate::Backend;
+use async_trait::async_trait;
 use hickory_client::client::{Client, SyncClient};
 use hickory_client::op::DnsResponse;
 use hickory_client::rr::{DNSClass, Name, RData, Record, RecordType};
 use hickory_client::udp::UdpClientConnection;
-use rand::{Rng};
-use pingora_error::{BError, Error, ErrorType};
-use pingora_error::ErrorType::{Custom, InternalError};
+use pingora_error::Error;
+use pingora_error::ErrorType::Custom;
+use rand::Rng;
+use std::collections::{BTreeSet, HashMap};
+use std::env;
+use std::net::{IpAddr, Ipv4Addr, SocketAddr};
+use std::str::FromStr;
 
 pub struct DNS {
     domain: Box<str>,
@@ -23,7 +21,6 @@ pub struct DNS {
 
 static DNS_ADDR_ENV: &str = "DNS_ADDR";
 static GOOGLE_DNS: SocketAddr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)), 53);
-
 
 impl DNS {
     ///
@@ -37,9 +34,10 @@ impl DNS {
         }
         // from ENV get dns addr
         if let Ok(result) = env::var(DNS_ADDR_ENV) {
-            result.split(",").into_iter().for_each(|item| {
-                resolver.push(item.parse().unwrap())
-            });
+            result
+                .split(",")
+                .into_iter()
+                .for_each(|item| resolver.push(item.parse().unwrap()));
         } else {
             // default
             resolver.push(GOOGLE_DNS);
@@ -62,11 +60,14 @@ impl DNS {
     }
 
     ///
-    /// new DNS 
+    /// new DNS
     /// # Example
     /// let _ = DNS::new("www.example.com",vec!["8.8.8.8:53"])
     ///
-    pub fn new_with_resolve(service: &str, resolver: Vec<String>) -> pingora_error::Result<Self, Error> {
+    pub fn new_with_resolve(
+        service: &str,
+        resolver: Vec<String>,
+    ) -> pingora_error::Result<Self, Error> {
         if service.is_empty() {
             return Err(*Error::new(Custom("the service is empty is illegal")));
         }
@@ -91,7 +92,12 @@ impl DNS {
         });
     }
 
-    fn insert_item(&self, remote_addr: &str, health: &mut HashMap<u64, bool>, tree: &mut BTreeSet<Backend>) {
+    fn insert_item(
+        &self,
+        remote_addr: &str,
+        health: &mut HashMap<u64, bool>,
+        tree: &mut BTreeSet<Backend>,
+    ) {
         let addr = format!("{}:{}", remote_addr, self.port);
         let value = Backend::new(addr.as_str()).unwrap();
         health.insert(value.hash_key(), true);
