@@ -33,7 +33,7 @@ pub mod discovery;
 pub mod health_check;
 pub mod selection;
 
-use discovery::ServiceDiscovery;
+use crate::discovery::ServiceDiscovery;
 use health_check::Health;
 use selection::UniqueIterator;
 use selection::{BackendIter, BackendSelection};
@@ -379,7 +379,9 @@ where
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::discovery::{dns, ServiceDiscovery};
     use async_trait::async_trait;
+    use futures::executor::block_on;
 
     #[tokio::test]
     async fn test_static_backends() {
@@ -461,6 +463,17 @@ mod test {
         assert!(!backends.ready(&bad));
     }
 
+    #[test]
+    fn test_discovery_dns() {
+        let discovery = dns::DNS::new("www.example.com").unwrap();
+
+        let backends = Backends::new(Box::new(discovery));
+        let update = block_on(backends.update());
+        assert!(update.is_ok());
+        let backend = backends.get_backend();
+        assert!(!backend.is_empty());
+    }
+
     #[tokio::test]
     async fn test_parallel_health_check() {
         let discovery = discovery::Static::default();
@@ -483,5 +496,69 @@ mod test {
         assert!(backends.ready(&good1));
         assert!(backends.ready(&good2));
         assert!(!backends.ready(&bad));
+    }
+
+    // #[tokio::test]
+    // async fn test_dns_lookup() {
+    //     let domain = "www.example.com";
+    //     // let health = HashMap::new();
+    //     let tree: BTreeSet<Backend> = BTreeSet::new();
+    //     let ips: Vec<std::net::IpAddr> = lookup_host(domain).unwrap();
+    //     for item in ips.to_vec() {
+    //         println!("{}", item.to_string())
+    //     }
+    // }
+
+    #[test]
+    fn test_dns_hickory_client() {
+        use hickory_client::client::{Client, SyncClient};
+        use hickory_client::op::DnsResponse;
+        use hickory_client::rr::{DNSClass, Name, RData, Record, RecordType};
+        use hickory_client::udp::UdpClientConnection;
+        use std::str::FromStr;
+
+        let address = "8.8.8.8:53".parse().unwrap();
+        let conn = UdpClientConnection::new(address).unwrap();
+        let client = SyncClient::new(conn);
+
+        // Specify the name, note the final '.' which specifies it's an FQDN
+        let name = Name::from_str("www.example.com").unwrap();
+
+        // NOTE: see 'Setup a connection' example above
+        // Send the query and get a message response, see RecordType for all supported options
+        let response: DnsResponse = client.query(&name, DNSClass::IN, RecordType::A).unwrap();
+
+        // Messages are the packets sent between client and server in DNS, DnsResonse's can be
+        //  dereferenced to a Message. There are many fields to a Message, It's beyond the scope
+        //  of these examples to explain them. See hickory_dns::op::message::Message for more details.
+        //  generally we will be interested in the Message::answers
+        let answers: &[Record] = response.answers();
+
+        // Records are generic objects which can contain any data.
+        //  In order to access it we need to first check what type of record it is
+        //  In this case we are interested in A, IPv4 address
+        for x in answers {
+            // let ip: &RData = x.data().unwrap();
+            if let Some(RData::A(ref remote_addr)) = x.data() {
+                println!("{}", remote_addr.to_string().as_str())
+            }
+            // match x.data() {
+            //     Some(RData::A(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     Some(RData::AAAA(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     Some(RData::CNAME(ref x)) => {
+            //         println!("{}", x)
+            //     }
+            //     None => {
+            //         println!("none")
+            //     }
+            //     _ => {
+            //         println!("_")
+            //     }
+            // };
+        }
     }
 }

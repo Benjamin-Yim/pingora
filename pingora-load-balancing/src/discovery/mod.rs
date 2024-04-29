@@ -14,6 +14,8 @@
 
 //! Service discovery interface and implementations
 
+pub mod dns;
+
 use arc_swap::ArcSwap;
 use async_trait::async_trait;
 use pingora_core::protocols::l4::socket::SocketAddr;
