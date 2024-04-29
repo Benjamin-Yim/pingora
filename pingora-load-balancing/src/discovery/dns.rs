@@ -90,6 +90,13 @@ impl DNS {
             port,
         });
     }
+
+    fn insert_item(&self, remote_addr: &str, health: &mut HashMap<u64, bool>, tree: &mut BTreeSet<Backend>) {
+        let addr = format!("{}:{}", remote_addr, self.port);
+        let value = Backend::new(addr.as_str()).unwrap();
+        health.insert(value.hash_key(), true);
+        tree.insert(value);
+    }
 }
 
 ///
@@ -100,11 +107,7 @@ impl ServiceDiscovery for DNS {
         // no readiness
         let mut health: HashMap<u64, bool> = HashMap::new();
         let mut tree: BTreeSet<Backend> = BTreeSet::new();
-        // let ips: Vec<std::net::IpAddr> = lookup_host(self.0.as_ref()).unwrap();
-        // for item in ips.to_vec() {
-        //     let _b = tree.insert(Backend::new(item.to_string().as_str())?);
-        // }
-
+        // random dns address
         let mut rng = rand::thread_rng();
         let index;
         if self.resolver.len() > 1 {
@@ -122,17 +125,10 @@ impl ServiceDiscovery for DNS {
         for x in answers {
             match x.data() {
                 Some(RData::A(ref remote_addr)) => {
-                    let addr = format!("{}:{}", remote_addr, self.port);
-                    if let Ok(value) = Backend::new(addr.as_str()) {
-                        health.insert(value.hash_key(), true);
-                        tree.insert(value);
-                    }
+                    self.insert_item(remote_addr.to_string().as_str(), &mut health, &mut tree)
                 }
                 Some(RData::AAAA(ref remote_addr)) => {
-                    let addr = format!("{}:{}", remote_addr, self.port);
-                    let value = Backend::new(addr.as_str())?;
-                    health.insert(value.hash_key(), true);
-                    tree.insert(value);
+                    self.insert_item(remote_addr.to_string().as_str(), &mut health, &mut tree)
                 }
                 _ => {}
             }
