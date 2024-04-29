@@ -35,9 +35,9 @@ use pingora::prelude::*;
 use std::sync::Arc;
 
 fn main() {
-let mut my_server = Server::new(None).unwrap();
-my_server.bootstrap();
-my_server.run_forever();
+    let mut my_server = Server::new(None).unwrap();
+    my_server.bootstrap();
+    my_server.run_forever();
 }
 ```
 
@@ -311,10 +311,10 @@ RUST_LOG=INFO cargo run -- -c conf.yaml -d -u
 
 这个示例的完整代码可以在这个存储库中找到：
 
-[pingora-proxy/examples/load_balancer.rs](../pingora-proxy/examples/load_balancer.rs)
+[pingora-proxy/examples/load_balancer.rs](../../pingora-proxy/examples/load_balancer.rs)
 
 还有其他您可能发现有用的示例在这里：
 
 
-[pingora-proxy/examples/](../pingora-proxy/examples/)
-[pingora/examples](../pingora/examples/)
+[pingora-proxy/examples/](../../pingora-proxy/examples/)
+[pingora/examples](../../pingora/examples/)

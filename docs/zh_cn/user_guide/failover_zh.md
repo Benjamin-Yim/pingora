@@ -32,13 +32,7 @@ impl ProxyHttp for MyProxy {
         MyCtx { tries: 0 }
     }
 
-    fn fail_to_connect(
-        &self,
-        _session: &mut Session,
-        _peer: &HttpPeer,
-        ctx: &mut Self::CTX,
-        mut e: Box<Error>,
-    ) -> Box<Error> {
+    fn fail_to_connect(&self, _session: &mut Session, _peer: &HttpPeer, ctx: &mut Self::CTX, mut e: Box<Error>, ) -> Box<Error> {
         if ctx.tries > 0 {
             return e;
         }
@@ -47,11 +41,7 @@ impl ProxyHttp for MyProxy {
         e
     }
 
-    async fn upstream_peer(
-        &self,
-        _session: &mut Session,
-        ctx: &mut Self::CTX,
-    ) -> Result<Box<HttpPeer>> {
+    async fn upstream_peer(&self, _session: &mut Session, ctx: &mut Self::CTX, ) -> Result<Box<HttpPeer>> {
         let addr = if ctx.tries < 1 {
             ("192.0.2.1", 443)
         } else {

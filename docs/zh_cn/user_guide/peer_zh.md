@@ -4,6 +4,7 @@
 
 ## `Peer`
 `HttpPeer` 定义了要连接到的上游。
+
 | 属性      | 含义        |
 | ------------- |-------------|
 |address: `SocketAddr`| 要连接的 IP:Port |
@@ -16,6 +17,7 @@
 
 ## `PeerOptions`
 `PeerOptions` 定义了如何连接到上游。
+
 | 属性      | 含义        |
 | ------------- |-------------|
 |bind_to: `Option<InetSocketAddr>`| 作为客户端 IP 绑定到哪个本地地址 |

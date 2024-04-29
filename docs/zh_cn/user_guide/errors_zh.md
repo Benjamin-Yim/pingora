@@ -20,11 +20,7 @@ fn validate_req_header(req: &RequestHeader) -> Result<()> {
 }
 
 impl MyServer {
-    pub async fn handle_request_filter(
-        &self,
-        http_session: &mut Session,
-        ctx: &mut CTX,
-    ) -> Result<bool> {
+    pub async fn handle_request_filter(&self, http_session: &mut Session, ctx: &mut CTX, ) -> Result<bool> {
         validate_req_header(session.req_header()?).or_err(HTTPStatus(400), "Missing required headers")?;
         Ok(true)
     }
@@ -56,7 +52,7 @@ impl MyServer {
 ## 重试
 
 
-异常可以是“可重试”的。如果异常是可重试的，则允许 pingora-proxy 重试上游请求。有些异常只能在 复用连接 时可重试，例如处理远程端已放弃的我们尝试[复用](pooling_zh.md)的连接的情况。
+异常可以是“可重试”的。如果异常是可重试的，则允许 `pingora-proxy` 重试上游请求。有些异常只能在 复用连接 时可重试，例如处理远程端已放弃的我们尝试[复用](pooling_zh.md)的连接的情况。
 
 
 默认情况下，新创建的 `Error` 要么继承其直接导致异常的重试状态，要么（如果未指定）被认为是不可重试的。

@@ -15,11 +15,7 @@ impl ProxyHttp for MyGateway {
 type CTX = ();
 fn new_ctx(&self) -> Self::CTX {}
 
-    async fn upstream_peer(
-        &self,
-        session: &mut Session,
-        _ctx: &mut Self::CTX,
-    ) -> Result<Box<HttpPeer>> {
+    async fn upstream_peer(&self, session: &mut Session, _ctx: &mut Self::CTX, ) -> Result<Box<HttpPeer>> {
         let addr = if session.req_header().uri.path().starts_with("/family/") {
             ("1.0.0.1", 443)
         } else {
@@ -42,25 +38,20 @@ fn new_ctx(&self) -> Self::CTX {}
 ```Rust
 #[async_trait]
 impl ProxyHttp for MyGateway {
-...
-async fn response_filter(
-&self,
-_session: &mut Session,
-upstream_response: &mut ResponseHeader,
-_ctx: &mut Self::CTX,
-) -> Result<()>
-where
-Self::CTX: Send + Sync,
-{
-// 如果存在，替换现有头部
-upstream_response
-.insert_header("Server", "MyGateway")
-.unwrap();
-// 因为我们不支持 h3
-upstream_response.remove_header("alt-svc");
-
-        Ok(())
-    }
+        ...
+        async fn response_filter(&self, _session: &mut Session, upstream_response: &mut ResponseHeader, _ctx: &mut Self::CTX, ) -> Result<()>
+        where
+        Self::CTX: Send + Sync,
+        {
+            // 如果存在，替换现有头部
+            upstream_response
+            .insert_header("Server", "MyGateway")
+            .unwrap();
+            // 因为我们不支持 h3
+            upstream_response.remove_header("alt-svc");
+    
+            Ok(())
+        }
 }
 ```
 
@@ -103,20 +94,12 @@ pub struct MyGateway {
 #[async_trait]
 impl ProxyHttp for MyGateway {
     ...
-    async fn logging(
-        &self,
-        session: &mut Session,
-        _e: Option<&pingora::Error>,
-        ctx: &mut Self::CTX,
-        ) {
+    async fn logging(&self, session: &mut Session, _e: Option<&pingora::Error>, ctx: &mut Self::CTX, ) {
         let response_code = session
-        .response_written()
-        .map_or(0, |resp| resp.status.as_u16());
+                            .response_written()
+                            .map_or(0, |resp| resp.status.as_u16());
         // 访问日志
-        info!(
-        "{} 响应码：{response_code}",
-        self.request_summary(session, ctx)
-        );
+        info!("{} 响应码：{response_code}", self.request_summary(session, ctx));
 
         self.req_metric.inc();
     }

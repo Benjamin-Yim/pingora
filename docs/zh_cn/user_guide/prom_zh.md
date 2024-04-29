@@ -14,7 +14,7 @@ my_server.run_forever();
 
 ```rust
 static MY_COUNTER: Lazy<IntGauge> = Lazy::new(|| {
-register_int_gauge!("my_counter", "my counter").unwrap()
+    register_int_gauge!("my_counter", "my counter").unwrap()
 });
 
 ```
