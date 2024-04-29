@@ -5,5 +5,7 @@ dhat-heap.json
 .vscode
 .idea
 .cover
+pingora/tests/keys/
 bleeper.user.toml
+.DS_Store
 .DS_Store
