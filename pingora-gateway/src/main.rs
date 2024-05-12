@@ -1,6 +1,5 @@
 
-use std::sync::Arc;
-use pingora_core::prelude::background_service;
+use pingora_core::prelude::{background_service, Opt};
 use pingora_core::server::Server;
 use pingora_load_balancing::health_check::TcpHealthCheck;
 use pingora_load_balancing::LoadBalancer;
@@ -9,7 +8,7 @@ use pingora_proxy::http_proxy_service;
 mod gateway;
 
 fn main() { 
-    let mut server = Server::new(None).unwrap();
+    let mut server = Server::new(Some(Opt::default())).unwrap();
 
     server.bootstrap();
 
