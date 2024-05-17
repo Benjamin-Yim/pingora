@@ -9,7 +9,7 @@ rustdoc-args = ["--cfg", "docsrs"]
 
 [dependencies]
 async-trait="0.1"
-
+lazy_static = "1.4.0"
 pingora-core = { version = "0.1.0", path = "../pingora-core" }
 pingora-http = { version = "0.1.0", path = "../pingora-http" }
 pingora-timeout = { version = "0.1.0", path = "../pingora-timeout" }

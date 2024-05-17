@@ -18,7 +18,7 @@
 // - http
 // - http.handlers.file_server
 // - caddy.logging.encoders.json
-pub struct  ModuleId(String);
+pub struct  ModuleId(pub String);
 
 
 
@@ -74,16 +74,15 @@ pub trait Module{
 }
 
 impl ModuleId {
-    pub fn Namespace(&self) -> &str{
+    pub fn namespace(&self) -> &str{
        self.0.as_str()
     }
 
-    pub fn Name(&self) ->  Option<&str>{
+    pub fn name(&self) ->  Option<&str>{
         if self.0.len() == 0{
             return None;
         }
-        let parts = self.0.split(".").collect();
-        return parts.get(parts.len()-1)
+        self.0.rsplit(".").last()
     }
     
     
