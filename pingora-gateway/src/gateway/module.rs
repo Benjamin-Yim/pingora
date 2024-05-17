@@ -1,4 +1,3 @@
-
 // ModuleID is a string that uniquely identifies a Caddy module. A
 // module ID is lightly structured. It consists of dot-separated
 // labels which form a simple hierarchy from left to right. The last
@@ -18,12 +17,11 @@
 // - http
 // - http.handlers.file_server
 // - caddy.logging.encoders.json
-pub struct  ModuleId(pub String);
-
+pub struct ModuleId(pub String);
 
 
 // ModuleInfo represents a registered Caddy module.
-pub struct ModuleInfo{
+pub struct ModuleInfo {
     // ID is the "full name" of the module. It
     // must be unique and properly namespaced.
     pub id: ModuleId,
@@ -36,7 +34,7 @@ pub struct ModuleInfo{
     // of the returned value should be done
     // in a Provision() method (see the
     // Provisioner interface).
-    pub new: fn()-> dyn Module,
+    pub new: Box<fn() -> Box<dyn Module>>,
 }
 
 
@@ -65,7 +63,7 @@ pub struct ModuleInfo{
 // type-asserted as caddyhttp.MiddlewareHandler values.
 // 6) When a module's containing Context is canceled, if it is
 // a CleanerUpper, its Cleanup() method is called.
-pub trait Module{
+pub trait Module {
     // This method indicates that the type is a Caddy
     // module. The returned ModuleInfo must have both
     // a name and a constructor function. This method
@@ -74,16 +72,14 @@ pub trait Module{
 }
 
 impl ModuleId {
-    pub fn namespace(&self) -> &str{
-       self.0.as_str()
+    pub fn namespace(&self) -> Option<&str> {
+        Some(self.0.as_str())
     }
 
-    pub fn name(&self) ->  Option<&str>{
-        if self.0.len() == 0{
+    pub fn name(&self) -> Option<&str> {
+        if self.0.len() == 0 {
             return None;
         }
         self.0.rsplit(".").last()
     }
-    
-    
 }
