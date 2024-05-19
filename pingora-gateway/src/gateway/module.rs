@@ -71,11 +71,15 @@ pub trait Module {
     fn module(&self) -> ModuleInfo;
 }
 
+// Namespace returns the namespace (or scope) portion of a module ID,
+// which is all but the last label of the ID. If the ID has only one
+// label, then the namespace is empty.
 impl ModuleId {
     pub fn namespace(&self) -> Option<&str> {
         Some(self.0.as_str())
     }
 
+    // Name returns the Name (last element) of a module ID.
     pub fn name(&self) -> Option<&str> {
         if self.0.len() == 0 {
             return None;

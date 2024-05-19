@@ -1,9 +1,6 @@
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::{Arc, Mutex, RwLock};
-use pingora_cache::cache_control::Cacheable::No;
+use std::sync::{Arc, RwLock};
 use crate::gateway::module::Module;
-use crate::modules;
 
 pub mod http_proxy;
 pub mod module;
