@@ -1,3 +1,5 @@
+use pingora_proxy::Session;
+
 // ModuleID is a string that uniquely identifies a Caddy module. A
 // module ID is lightly structured. It consists of dot-separated
 // labels which form a simple hierarchy from left to right. The last
@@ -69,6 +71,33 @@ pub trait Module {
     // a name and a constructor function. This method
     // must not have any side-effects.
     fn module(&self) -> ModuleInfo;
+
+    /// Provisioner is implemented by modules which may need to perform
+    /// some additional "setup" steps immediately after being loaded.
+    /// Provisioning should be fast (imperceptible running time). If
+    /// any side-effects result in the execution of this function (e.g.
+    /// creating global state, any other allocations which require
+    /// garbage collection, opening files, starting goroutines etc.),
+    /// be sure to clean up properly by implementing the CleanerUpper
+    /// interface to avoid leaking resources.
+    fn provision(&self) {}
+
+    /// validate is implemented by modules which can verify that their
+    /// configurations are valid. This method will be called after
+    /// Provision() (if implemented). Validation should always be fast
+    /// (imperceptible running time) and an error must be returned if
+    /// the module's configuration is invalid.
+    fn validate(&self) {}
+
+    /// cleanup is implemented by modules which may have side-effects
+    /// such as opened files, spawned goroutines, or allocated some sort
+    /// of non-stack state when they were provisioned. This method should
+    /// deallocate/cleanup those resources to prevent memory leaks. Cleanup
+    /// should be fast and efficient. Cleanup should work even if Provision
+    /// returns an error, to allow cleaning up from partial provisionings.
+    fn cleanup(&self) {}
+
+    fn serve_http(&self, _session: Option<&mut Session>) -> bool;
 }
 
 // Namespace returns the namespace (or scope) portion of a module ID,

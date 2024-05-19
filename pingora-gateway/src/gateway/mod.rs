@@ -1,12 +1,13 @@
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::sync::{Arc, RwLock};
+use linked_hash_map::LinkedHashMap;
 use crate::gateway::module::Module;
 
 pub mod http_proxy;
 pub mod module;
 
 lazy_static::lazy_static! {
-    static ref MODULES:RwLock<HashMap<String,Arc<dyn Module+Send + Sync>>> = RwLock::new(HashMap::new());
+    static ref MODULES:RwLock<LinkedHashMap<String,Arc<dyn Module+Send + Sync>>> = RwLock::new(LinkedHashMap::new());
 }
 
 

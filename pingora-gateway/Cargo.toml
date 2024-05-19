@@ -1,6 +1,6 @@
 [package]
 name = "pingora-gateway"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 
 [package.metadata.docs.rs]
@@ -10,12 +10,13 @@ rustdoc-args = ["--cfg", "docsrs"]
 [dependencies]
 async-trait="0.1"
 lazy_static = "1.4.0"
-pingora-core = { version = "0.1.0", path = "../pingora-core" }
-pingora-http = { version = "0.1.0", path = "../pingora-http" }
-pingora-timeout = { version = "0.1.0", path = "../pingora-timeout" }
-pingora-load-balancing = { version = "0.1.0", path = "../pingora-load-balancing" }
-pingora-proxy = { version = "0.1.0", path = "../pingora-proxy" }
-pingora-cache = { version = "0.1.0", path = "../pingora-cache" }
+pingora-core = { version = "0.2.0", path = "../pingora-core" }
+pingora-http = { version = "0.2.0", path = "../pingora-http" }
+pingora-timeout = { version = "0.2.0", path = "../pingora-timeout" }
+pingora-load-balancing = { version = "0.2.0", path = "../pingora-load-balancing" }
+pingora-proxy = { version = "0.2.0", path = "../pingora-proxy" }
+pingora-cache = { version = "0.2.0", path = "../pingora-cache" }
+linked-hash-map = "0.5.6"
 
 
 [dev-dependencies]
