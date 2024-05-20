@@ -5,9 +5,6 @@ use pingora_load_balancing::health_check::TcpHealthCheck;
 use pingora_load_balancing::LoadBalancer;
 use pingora_proxy::http_proxy_service;
 
-mod gateway;
-mod modules;
-
 fn main() { 
     let mut server = Server::new(Some(Opt::default())).unwrap();
 

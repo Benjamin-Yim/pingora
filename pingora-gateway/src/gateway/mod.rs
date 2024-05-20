@@ -5,6 +5,7 @@ use crate::gateway::module::Module;
 
 pub mod http_proxy;
 pub mod module;
+mod ctx;
 
 lazy_static::lazy_static! {
     static ref MODULES:RwLock<LinkedHashMap<String,Arc<dyn Module+Send + Sync>>> = RwLock::new(LinkedHashMap::new());
